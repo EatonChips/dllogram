@@ -1,0 +1,10 @@
+#ifndef _SHELLCODE_H_
+#define _SHELLCODE_H_
+
+unsigned char shellcode [] = {
+  {{ .Shellcode }}
+};
+
+unsigned int shellcodeLen = {{ .ShellcodeLen }};
+
+#endif

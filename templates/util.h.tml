@@ -1,0 +1,8 @@
+#ifndef _UTIL_H_
+#define _UTIL_H_
+
+#include <vector>
+
+std::vector<char> base64_decode(const unsigned char*, size_t);
+
+#endif
