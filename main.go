@@ -15,27 +15,32 @@ import (
 )
 
 var (
-	inputFile string
+	inputFile    string
+	inputDLL     string
+	outputFormat string
+	arch         int
 
 	seededRand *rand.Rand
 	err        error
 )
 
 const (
-	BuildDir               = "./build"
-	TemplateDir            = "./templates"
-	shellcodeHTemplateFile = "templates/shellcode.h.tml"
-	templateFile           = "templates/main.tml"
+	BuildDir    = "./build"
+	TemplateDir = "./templates"
 )
 
 type TemplateVars struct {
 	Shellcode    string
 	ShellcodeLen int
+	Format       string
+	Architecture string
 	V            map[string]string
 }
 
 func init() {
 	flag.StringVar(&inputFile, "i", "", "Shellcode file")
+	flag.StringVar(&outputFormat, "f", "exe", "Executable format: dll, exe")
+	flag.StringVar(&inputDLL, "proxy-dll", "", "DLL to proxy functions to")
 
 	flag.Parse()
 
@@ -43,6 +48,8 @@ func init() {
 		fmt.Println("Input file required")
 		os.Exit(0)
 	}
+
+	outputFormat = strings.ToLower(outputFormat)
 
 	seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 }
@@ -70,7 +77,8 @@ func main() {
 		// "shellcode": genVarName(vNameMin, vNameMax),
 	}
 	sc := TemplateVars{
-		V: vNames,
+		Format: outputFormat,
+		V:      vNames,
 	}
 	cShellcode := ""
 

