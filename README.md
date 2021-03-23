@@ -2,6 +2,18 @@
 
 Generates cpp code that can be compiled into an exe or dll that executes a specified shellcode. Can parse an existing dll and implement functions by proxying to retain functionality. 
 
+## Installation
+
+Option 0: go get
+
+```
+go get -u github.com/eatonchips/dllogram
+```
+
+Option 1: Build from source
+
+Clone repository and in directory call `go build`
+
 ## Usage
 
 ### Examples
