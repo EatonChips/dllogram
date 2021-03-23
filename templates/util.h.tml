@@ -3,6 +3,6 @@
 
 #include <vector>
 
-std::vector<char> base64_decode(const unsigned char*, size_t);
+std::vector<char> {{ index .V "base64_decode" }}(const unsigned char*, size_t);
 
 #endif

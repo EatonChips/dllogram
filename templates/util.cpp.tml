@@ -4,8 +4,8 @@
 
 #include "util.h"
 
-std::vector<char> base64_decode(const unsigned char* input, size_t in_len) {
-    constexpr static unsigned char kDecodingTable[] = {
+  std::vector<char> {{ index .V "base64_decode" }}(const unsigned char* {{ index .V "input" }}, size_t {{ index .V "in_len" }}) {
+    constexpr static unsigned char {{ index .V "kDecodingTable" }}[] = {
       64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
       64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
       64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 62, 64, 64, 64, 63,
@@ -24,31 +24,31 @@ std::vector<char> base64_decode(const unsigned char* input, size_t in_len) {
       64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64
     };
 
-    std::string out = "";
+    std::string {{ index .V "out" }} = "";
 
-    // size_t in_len = inputSize;
+    // size_t {{ index .V "in_len" }} = {{ index .V "inputSize" }};
     // if (in_len % 4 != 0) return "Input data size is not a multiple of 4";
 
-    size_t out_len = in_len / 4 * 3;
-    if (input[in_len - 1] == '=') out_len--;
-    if (input[in_len - 2] == '=') out_len--;
+    size_t {{ index .V "out_len" }} = {{ index .V "in_len" }} / 4 * 3;
+    if ({{ index .V "input" }}[{{ index .V "in_len" }} - 1] == '=') {{ index .V "out_len" }}--;
+    if ({{ index .V "input" }}[{{ index .V "in_len" }} - 2] == '=') {{ index .V "out_len" }}--;
 
-    out.resize(out_len);
+    {{ index .V "out" }}.resize({{ index .V "out_len" }});
 
-    for (size_t i = 0, j = 0; i < in_len;) {
-        uint32_t a = input[i] == '=' ? 0 & i++ : kDecodingTable[static_cast<int>(input[i++])];
-        uint32_t b = input[i] == '=' ? 0 & i++ : kDecodingTable[static_cast<int>(input[i++])];
-        uint32_t c = input[i] == '=' ? 0 & i++ : kDecodingTable[static_cast<int>(input[i++])];
-        uint32_t d = input[i] == '=' ? 0 & i++ : kDecodingTable[static_cast<int>(input[i++])];
+    for (size_t i = 0, j = 0; i < {{ index .V "in_len" }};) {
+      uint32_t a = {{ index .V "input" }}[i] == '=' ? 0 & i++ : {{ index .V "kDecodingTable" }}[static_cast<int>({{ index .V "input" }}[i++])];
+      uint32_t b = {{ index .V "input" }}[i] == '=' ? 0 & i++ : {{ index .V "kDecodingTable" }}[static_cast<int>({{ index .V "input" }}[i++])];
+      uint32_t c = {{ index .V "input" }}[i] == '=' ? 0 & i++ : {{ index .V "kDecodingTable" }}[static_cast<int>({{ index .V "input" }}[i++])];
+      uint32_t d = {{ index .V "input" }}[i] == '=' ? 0 & i++ : {{ index .V "kDecodingTable" }}[static_cast<int>({{ index .V "input" }}[i++])];
 
-        uint32_t triple = (a << 3 * 6) + (b << 2 * 6) + (c << 1 * 6) + (d << 0 * 6);
+      uint32_t triple = (a << 3 * 6) + (b << 2 * 6) + (c << 1 * 6) + (d << 0 * 6);
 
-        if (j < out_len) out[j++] = (triple >> 2 * 8) & 0xFF;
-        if (j < out_len) out[j++] = (triple >> 1 * 8) & 0xFF;
-        if (j < out_len) out[j++] = (triple >> 0 * 8) & 0xFF;
+      if (j < {{ index .V "out_len" }}) {{ index .V "out" }}[j++] = (triple >> 2 * 8) & 0xFF;
+      if (j < {{ index .V "out_len" }}) {{ index .V "out" }}[j++] = (triple >> 1 * 8) & 0xFF;
+      if (j < {{ index .V "out_len" }}) {{ index .V "out" }}[j++] = (triple >> 0 * 8) & 0xFF;
     }
 
-    std::vector<char> outVector(out.begin(), out.end());
+    std::vector<char> {{ index .V "outVector" }}({{ index .V "out" }}.begin(), {{ index .V "out" }}.end());
 
-    return outVector;
+    return {{ index .V "outVector" }};
 }

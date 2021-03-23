@@ -1,10 +1,10 @@
 #ifndef _SHELLCODE_H_
 #define _SHELLCODE_H_
 
-unsigned char shellcode [] = {
+unsigned char {{ index .V "shellcode" }}[] = {
   {{ .Shellcode }}
 };
 
-unsigned int shellcodeLen = {{ .ShellcodeLen }};
+unsigned int {{ index .V "shellcodeLen" }} = {{ .ShellcodeLen }};
 
 #endif
