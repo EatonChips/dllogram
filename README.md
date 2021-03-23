@@ -26,7 +26,7 @@ dllogram -i shellcode.bin -f dll -proxy-dll msvcp140.dll -build
 
 ```
 dllogram 
-	-a int
+  -a int
         Architecture: 32, 64 (default 64)
   -build
         Build generated code?
