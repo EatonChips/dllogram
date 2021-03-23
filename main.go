@@ -134,6 +134,7 @@ func main() {
 
 	// Generate all required templates
 	fmt.Println("Generating source files...")
+	mkDir("./src")
 	for _, t := range templateFiles {
 		err = generateTemplate(fmt.Sprintf("%s/%s", TemplateDir, t), sc)
 		if err != nil {
@@ -164,6 +165,8 @@ func main() {
 
 	// Generate compilation command
 	if buildOption {
+		mkDir("./build")
+
 		compileCmd := ""
 		if arch == 32 {
 			compileCmd += "/usr/local/bin/i686-w64-mingw32-g++ "
@@ -314,4 +317,12 @@ func copyFile(src, dst string) (int64, error) {
 	defer destination.Close()
 	nBytes, err := io.Copy(destination, source)
 	return nBytes, err
+}
+
+// Create directory if it doesn't exist
+func mkDir(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return os.Mkdir(path, os.ModeDir|0755)
+	}
+	return nil
 }
