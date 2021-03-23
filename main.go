@@ -164,26 +164,27 @@ func main() {
 	fmt.Println("Generated source!")
 
 	// Generate compilation command
+	compileCmd := ""
+	if arch == 32 {
+		compileCmd += "i686-w64-mingw32-g++ "
+	} else {
+		compileCmd += "x86_64-w64-mingw32-g++ "
+	}
+
+	if outputFormat == "dll" {
+		compileCmd += "-shared "
+	}
+
+	if outFile == "" {
+		outFile = fmt.Sprintf("%s.%s", filepath.Base(shellFile), outputFormat)
+	}
+
+	compileCmd += fmt.Sprintf("-o %s/%s ", BuildDir, outFile)
+	compileCmd += fmt.Sprintf("%s/*", SrcDir)
+
+	// Build
 	if buildOption {
 		mkDir("./build")
-
-		compileCmd := ""
-		if arch == 32 {
-			compileCmd += "/usr/local/bin/i686-w64-mingw32-g++ "
-		} else {
-			compileCmd += "/usr/local/bin/x86_64-w64-mingw32-g++ "
-		}
-
-		if outputFormat == "dll" {
-			compileCmd += "-shared "
-		}
-
-		if outFile == "" {
-			outFile = fmt.Sprintf("%s.%s", filepath.Base(shellFile), outputFormat)
-		}
-
-		compileCmd += fmt.Sprintf("-o %s/%s ", BuildDir, outFile)
-		compileCmd += fmt.Sprintf("%s/*", SrcDir)
 
 		fmt.Printf("Compiling: %s\n", compileCmd)
 		_, err = exec.Command("sh", "-c", compileCmd).Output()
@@ -191,6 +192,8 @@ func main() {
 			panic(err)
 		}
 		fmt.Printf("Compiled at %s\n", outFile)
+	} else {
+		fmt.Printf("Compile with: %s\n", compileCmd)
 	}
 }
 

