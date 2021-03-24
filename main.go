@@ -18,22 +18,34 @@ import (
 	"github.com/fcharlie/buna/debug/pe"
 )
 
+type arrayFlags []string
+
+func (i *arrayFlags) String() string {
+	return "my string representation"
+}
+
+func (i *arrayFlags) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
+
 var (
-	shellFile    string
-	inputDLL     string
-	outputFormat string
-	outFile      string
-	arch         int
-	buildOption  bool
+	shellFile     string
+	inputDLL      string
+	outputFormat  string
+	outFile       string
+	arch          int
+	buildOption   bool
+	templateFiles arrayFlags
 
 	seededRand *rand.Rand
 	err        error
 )
 
 const (
-	SrcDir      = "src"
-	BuildDir    = "build"
-	TemplateDir = "templates"
+	SrcDir      = "./src"
+	BuildDir    = "./build"
+	TemplateDir = "./templates"
 	GppFlags    = "-O3"
 )
 
@@ -53,6 +65,7 @@ func init() {
 	flag.StringVar(&inputDLL, "proxy-dll", "", "DLL to proxy functions to")
 	flag.IntVar(&arch, "a", 64, "Architecture: 32, 64")
 	flag.BoolVar(&buildOption, "build", false, "Build generated code?")
+	flag.Var(&templateFiles, "t", "Template file, repeatable")
 
 	flag.Parse()
 
@@ -125,18 +138,21 @@ func main() {
 	sc.ShellcodeLen = len(encodedFile)
 
 	// Define active templates
-	templateFiles := []string{
-		"shellcode.h.tml",
-		"main.cpp.tml",
-		"util.cpp.tml",
-		"util.h.tml",
+	if templateFiles == nil {
+		templateFiles = []string{
+			filepath.Join(TemplateDir, "shellcode.h.tml"),
+			filepath.Join(TemplateDir, "main.cpp.tml"),
+			filepath.Join(TemplateDir, "util.cpp.tml"),
+			filepath.Join(TemplateDir, "util.h.tml"),
+		}
 	}
 
 	// Generate all required templates
 	fmt.Println("Generating source files...")
-	mkDir("./src")
+	mkDir(SrcDir)
+	clearDir(SrcDir)
 	for _, t := range templateFiles {
-		err = generateTemplate(fmt.Sprintf("%s/%s", TemplateDir, t), sc)
+		err = generateTemplate(t, sc)
 		if err != nil {
 			panic(err)
 		}
@@ -145,6 +161,8 @@ func main() {
 
 	// Parse target DLL for DLL proxy
 	if inputDLL != "" {
+		mkDir(BuildDir)
+
 		baseFileName := filepath.Base(inputDLL)
 		baseFileName = strings.Split(baseFileName, ".")[0]
 
@@ -179,12 +197,12 @@ func main() {
 		outFile = fmt.Sprintf("%s.%s", filepath.Base(shellFile), outputFormat)
 	}
 
-	compileCmd += fmt.Sprintf("-o %s/%s ", BuildDir, outFile)
+	compileCmd += fmt.Sprintf("-o %s %s ", filepath.Join(BuildDir, outFile), GppFlags)
 	compileCmd += fmt.Sprintf("%s/*", SrcDir)
 
 	// Build
 	if buildOption {
-		mkDir("./build")
+		mkDir(BuildDir)
 
 		fmt.Printf("Compiling: %s\n", compileCmd)
 		_, err = exec.Command("sh", "-c", compileCmd).Output()
@@ -326,6 +344,26 @@ func copyFile(src, dst string) (int64, error) {
 func mkDir(path string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return os.Mkdir(path, os.ModeDir|0755)
+	}
+	return nil
+}
+
+// Removes the contents of a directory
+func clearDir(path string) error {
+	d, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+	names, err := d.Readdirnames(-1)
+	if err != nil {
+		return err
+	}
+	for _, name := range names {
+		err = os.RemoveAll(filepath.Join(path, name))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
