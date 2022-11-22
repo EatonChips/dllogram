@@ -46,7 +46,7 @@ const (
 	SrcDir      = "./src"
 	BuildDir    = "./build"
 	TemplateDir = "./templates"
-	GppFlags    = "-O3"
+	GppFlags    = "-static-libgcc -static-libstdc++"
 )
 
 type TemplateVars struct {
@@ -127,14 +127,18 @@ func main() {
 	}
 
 	// Convert file into char array
-	cShellcode := ""
-	for i, b := range encodedFile {
-		cShellcode += fmt.Sprintf("0x%x, ", b)
+	var sb strings.Builder
+
+	src := []byte(encodedFile)
+
+	for i, b := range src {
+		sb.WriteString(fmt.Sprintf("0x%x, ", b))
 		if (i+1)%12 == 0 {
-			cShellcode += "\n  "
+			sb.WriteString("\n ")
 		}
 	}
-	sc.Shellcode = cShellcode
+
+	sc.Shellcode = sb.String()
 	sc.ShellcodeLen = len(encodedFile)
 
 	// Define active templates
