@@ -2,6 +2,8 @@
 #define _UTIL_H_
 
 #include <vector>
+#include <stdio.h>
+#include <stdlib.h>
 
 std::vector<char> {{ index .V "base64_decode" }}(const unsigned char*, size_t);
 
